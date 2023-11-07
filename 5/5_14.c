@@ -84,10 +84,6 @@ int readlines (char* lineptr[],int maxlines)
 
 void writelines(char** ptr, int nlines)
 {
-/*
-	for (int i = 0; i < nlines; i++)
-		printf("%s\n", lineptr[i]);
-*/
 	while (nlines-- > 0)
 		printf("%s\n", *ptr++);
 }
