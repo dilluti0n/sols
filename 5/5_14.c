@@ -39,9 +39,7 @@ main (int argc, char* argv[])
 			}
 
 	if ((nlines = readlines(lineptr, MAXLINES)) >= 0) {
-		qsort_e((void **) lineptr, 0, nlines - 1,\
-				(int (*)(void*,void*))(numeric ? numcmp : strcmp));
-		printf("%d\n",nlines);
+		qsort_e((void **) lineptr, 0, nlines - 1,(int (*)(void*,void*))(numeric ? numcmp : strcmp));
 		writelines(lineptr,nlines);
 		freelines(lineptr,nlines);
 		return 0;
@@ -90,7 +88,7 @@ void writelines(char** ptr, int nlines)
 	for (int i = 0; i < nlines; i++)
 		printf("%s\n", lineptr[i]);
 */
-	while (nlines--)
+	while (nlines-- > 0)
 		printf("%s\n", *ptr++);
 }
 
@@ -100,8 +98,7 @@ void freelines (char** lineptr, int nlines)
 		free(lineptr[i]);
 }
 
-void qsort_e (void *v[], int left, int right,\
-		int (*comp)(void*, void*))
+void qsort_e (void *v[], int left, int right,int (*comp)(void*, void*))
 {
 	int i, last;
 	void swap (void *v[], int, int);
@@ -114,8 +111,8 @@ void qsort_e (void *v[], int left, int right,\
 		if ((*comp)(v[i], v[left])< 0)
 			swap (v, ++last, i);
 	swap (v, left, last);
-	qsort (v, left, last - 1, comp);
-	qsort (v, last + 1, right, comp);
+	qsort_e (v, left, last - 1, comp);
+	qsort_e (v, last + 1, right, comp);
 }
 
 int numcmp (char* s1, char* s2)
