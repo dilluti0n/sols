@@ -1,4 +1,8 @@
-/* Ex. 5-14. Modify the sort program to handle a -r flag, which indicates sorting in reverse (decreasing) order. Be sure that -r works with -n */
+/*
+ * Ex. 5-14. Add the option -f to fold upper and lower case together
+ * so that case distinctions are not made during sorting;
+ * for example, a and A compare equal.
+ */
 
 #include <stdio.h>
 #include <string.h>
@@ -19,8 +23,10 @@ void qsort_e (void *lineptr[], int left, int right,\
 			int (*comp)(void*, void*));
 
 int numcmp (char*, char*);
+int strcmp_e (char*, char*);
 
-int reverse;
+int reverse; /* 1, -1(reverse, -r), qsort_e */
+int fold; /* 0, 1(fold, -f), strcmp_e */
 
 main (int argc, char* argv[])
 {
@@ -28,6 +34,7 @@ main (int argc, char* argv[])
 	int numeric = 0;
 
 	reverse = 1;
+	fold = 0;
 	while (--argc > 0)
 		if ((*++argv)[0] == '-') {
 			c = *(*argv + 1);
@@ -38,11 +45,15 @@ main (int argc, char* argv[])
 			case 'r':
 				reverse = -1;
 				break;
+			case 'f':
+				fold = 1;
+				break;
 			}
 		}
 
 	if ((nlines = readlines(lineptr, MAXLINES)) >= 0) {
-		qsort_e((void **) lineptr, 0, nlines - 1,(int (*)(void*,void*))(numeric ? numcmp : strcmp));
+		qsort_e((void **) lineptr, 0, nlines - 1,\
+			(int (*)(void*,void*))(numeric ? numcmp : strcmp_e));
 		writelines(lineptr,nlines);
 		freelines(lineptr,nlines);
 		return 0;
@@ -125,6 +136,11 @@ int numcmp (char* s1, char* s2)
 	else if (v1 > v2)
 		return 1;
 	return 0;
+}
+
+int strcmp_e (char* s1, char* s2)
+{
+	return (fold ? strcasecmp (s1, s2) : strcmp (s1, s2));
 }
 
 void swap(void *v[], int i, int j)

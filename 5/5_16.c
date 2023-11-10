@@ -1,8 +1,13 @@
-/* Ex. 5-14. Modify the sort program to handle a -r flag, which indicates sorting in reverse (decreasing) order. Be sure that -r works with -n */
+/*
+ * Ex. 5-16. Add the -d ("directory order") opteon, which makes
+ * comparisons only on letters, numbers and blanks. Make sure 
+ * it works in conjunction with -f.
+ */
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #define MAXLINES 5000
 #define MAXLEN 10000
@@ -19,8 +24,11 @@ void qsort_e (void *lineptr[], int left, int right,\
 			int (*comp)(void*, void*));
 
 int numcmp (char*, char*);
+int strcmp_e (char*, char*);
 
-int reverse;
+int reverse;   /* 1, -1(reverse, -r) */
+int fold;      /* 0, 1(fold, -f) */
+int directory; /* 0, 1(dir, -f) */
 
 main (int argc, char* argv[])
 {
@@ -28,6 +36,8 @@ main (int argc, char* argv[])
 	int numeric = 0;
 
 	reverse = 1;
+	fold = 0;
+	directory = 0;
 	while (--argc > 0)
 		if ((*++argv)[0] == '-') {
 			c = *(*argv + 1);
@@ -38,11 +48,18 @@ main (int argc, char* argv[])
 			case 'r':
 				reverse = -1;
 				break;
+			case 'f':
+				fold = 1;
+				break;
+			case 'd':
+				directory = 1;
+				break;
 			}
 		}
 
 	if ((nlines = readlines(lineptr, MAXLINES)) >= 0) {
-		qsort_e((void **) lineptr, 0, nlines - 1,(int (*)(void*,void*))(numeric ? numcmp : strcmp));
+		qsort_e((void **) lineptr, 0, nlines - 1,\
+			(int (*)(void*,void*))(numeric ? numcmp : strcmp_e));
 		writelines(lineptr,nlines);
 		freelines(lineptr,nlines);
 		return 0;
@@ -124,6 +141,25 @@ int numcmp (char* s1, char* s2)
 		return -1;
 	else if (v1 > v2)
 		return 1;
+	return 0;
+}
+
+int strcmp_e (char* s1, char* s2)
+{
+	int result;
+
+	while (*s1 && *s2) {
+		while (directory && !isalnum(*s1) && !isspace(*s1))
+			++s1;
+		while (directory && !isalnum(*s2) && !isspace(*s2))
+			++s2;
+		if ((result = fold ? tolower(*s1) - tolower(*s2) : *s1 - *s2) != 0)
+			return result;
+		else {
+			++s1;
+			++s2;
+		}
+	}
 	return 0;
 }
 
