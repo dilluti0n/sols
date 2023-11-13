@@ -3,3 +3,4 @@ a.*
 */a.*
 cc.c
 .DS_Store
+*.exe
