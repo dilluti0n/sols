@@ -36,9 +36,9 @@ main()
 		}
 		strcpy(datatype, token);
 		out[0] = '\0';
-		dcl ();
+		dcl();
 		if (tokentype == '\n') {
-			printf("%s: %s %s\n", name, out, datatype);
+			printf("\t%s: %s %s\n", name, out, datatype);
 		} else if (tokentype == NAME) {
 			fprintf(stderr, "Syntax error: unexpected input %s\n", token);
 			token_reset();
@@ -47,7 +47,7 @@ main()
 			token_reset();
 		}
 	}
-	return 0;
+	return EXIT_SUCCESS;
 }
 
 /* optional *'s direct-dcl */
@@ -59,7 +59,7 @@ void dcl(void)
 		ns++;
 	dirdcl();
 	while (ns-- > 0)
-		strcat (out, " pointer to");
+		strcat(out, " pointer to");
 }
 
 /* name, (dcl), dirdcl(), dirdcl[optional size] */
@@ -67,26 +67,31 @@ void dirdcl(void)
 {
 	int type;
 	
-	if (tokentype == '(') {      /* ( dcl ) */
+	if (tokentype == '(') {                    /* ( dcl ) */
 		dcl();
 		if (tokentype != ')')
-			printf("error: missing )\n");
-	} else if (tokentype == NAME) {
+			fprintf(stderr, "error: missing closing parenthesis ')' after %s\n", name);
+	} else if (tokentype == NAME) {            /* name */
 		strcpy(name, token);
 	} else {
 		fprintf(stderr, "error: expected name or (dcl)\n");
-		return;
+		name[0] = '\0';
+		return; /* prevent over-call of gettoken() by following sentence. */
 	}
 	while ((type = gettoken()) == PARENS || type == BRACKETS)
-		if (type == PARENS) {
+		if (type == PARENS) {                  /* dirdcl() */
 			strcat(out, " function returning");
-		} else {
+		} else {                               /* dirdcl[optional size] */
 			strcat(out, " array");
 			strcat(out, token);
 			strcat(out, " of");
 		}
 }
 
+/* 
+ * get token from stdin. Each token is distinguished by 
+ * (), (, [opt], variable name, or any other char.
+ */
 int gettoken(void)
 {
 	int c, getch(void);
@@ -112,12 +117,13 @@ int gettoken(void)
 		for (*p++ = c; isalnum(c = getch()); )
 			*p++ = c;
 		*p = '\0';             /* token = name */
-		ungetch (c);
+		ungetch(c);
 		return tokentype = NAME;
 	} else
 		return tokentype = c;  /* '*' or ')' or '\n' expected */
 }
 
+/* reset the input and getch() buffer */
 void token_reset(void)
 {
 	do {
@@ -132,15 +138,20 @@ void token_reset(void)
 
 #define BUFSIZE 100
 
+int getch(void);
+void ungetch(int c);
+
 static int bp = 0;
 static char buf[BUFSIZE];
 
-int getch (void)
+/* buffered getchar() */
+int getch(void)
 {
 	return (bp > 0) ? buf[--bp] : getchar();
 }
 
-void ungetch (int c)
+/* Register c in the getch() buffer. */
+void ungetch(int c)
 {
 	if (bp < BUFSIZE)
 		buf[bp++] = c;
