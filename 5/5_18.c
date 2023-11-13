@@ -12,12 +12,12 @@
 
 enum { NAME, PARENS, BRACKETS };
 
-void dcl    (void);
-void dirdcl (void);
+void dcl(void);
+void dirdcl(void);
 
-int  gettoken (void);
+int  gettoken(void);
 
-void token_reset (void);
+void token_reset(void);
 
 int  tokentype;           /* type of last token */
 char token[MAXTOKEN];     /* last token string */
@@ -26,82 +26,81 @@ char datatype[MAXTOKEN];  /* data type = char, int ect. */
 char out[1000];           /* output string */
 
 /* dcl: convert declaration to words */
-main ()
+main()
 {
-	while (1) {
-		printf (">> ");   /* prompt */
+	for (;;) {
+		printf(">> ");   /* prompt */
 		if (gettoken () == EOF) {
-			printf ("\n");
+			printf("\n");
 			break;
 		}
-		strcpy (datatype, token);
+		strcpy(datatype, token);
 		out[0] = '\0';
 		dcl ();
-		if (tokentype == NAME) {
-			printf ("Syntax error: unexpected input %s\n", token);
-			token_reset ();
-		}
-		else if (tokentype != '\n') {
-			printf ("Syntax error: unexpected input %c\n", tokentype);
-			token_reset ();
+		if (tokentype == '\n') {
+			printf("%s: %s %s\n", name, out, datatype);
+		} else if (tokentype == NAME) {
+			fprintf(stderr, "Syntax error: unexpected input %s\n", token);
+			token_reset();
 		} else {
-		printf ("%s: %s %s\n", name, out, datatype);
+			fprintf(stderr, "Syntax error: unexpected input %c\n", tokentype);
+			token_reset();
 		}
 	}
 	return 0;
 }
 
 /* optional *'s direct-dcl */
-void dcl (void)
+void dcl(void)
 {
 	int ns;
 	
 	for (ns = 0; gettoken() == '*'; )
 		ns++;
-	dirdcl ();
+	dirdcl();
 	while (ns-- > 0)
 		strcat (out, " pointer to");
 }
 
 /* name, (dcl), dirdcl(), dirdcl[optional size] */
-void dirdcl (void)
+void dirdcl(void)
 {
 	int type;
 	
 	if (tokentype == '(') {      /* ( dcl ) */
-		dcl ();
+		dcl();
 		if (tokentype != ')')
-			printf ("error: missing )\n");
+			printf("error: missing )\n");
 	} else if (tokentype == NAME) {
-		strcpy (name, token);
+		strcpy(name, token);
 	} else {
-		printf ("error: expected name or (dcl)\n");
+		fprintf(stderr, "error: expected name or (dcl)\n");
 		return;
 	}
-	while ((type = gettoken ()) == PARENS || type == BRACKETS)
+	while ((type = gettoken()) == PARENS || type == BRACKETS)
 		if (type == PARENS) {
-			strcat (out, " function returning");
+			strcat(out, " function returning");
 		} else {
-			strcat (out, " array");
-			strcat (out, token);
-			strcat (out, " of");
+			strcat(out, " array");
+			strcat(out, token);
+			strcat(out, " of");
 		}
 }
 
-int gettoken (void)
+int gettoken(void)
 {
-	int c, getch (void);
-	void ungetch (int);
+	int c, getch(void);
+	void ungetch(int);
 	char *p = token;
 	
 	while ((c = getch()) == ' ' || c == '\t')
 		;
 	if (c == '(') {
 		if ((c = getch()) == ')') {
-			strcpy (token, "()");
+			strcpy(token, "()");
 			return tokentype = PARENS;		/* function */
 		} else {
-			ungetch (c);
+			ungetch(c);
 			return tokentype = '(';         /* ( dcl ) */
 		}
 	} else if (c == '[') {
@@ -109,8 +108,8 @@ int gettoken (void)
 			;
 		*p = '\0';            /* token = [optional size] */
 		return tokentype = BRACKETS;
-	} else if (isalpha (c)) {
-		for (*p++ = c; isalnum (c = getch()); )
+	} else if (isalpha(c)) {
+		for (*p++ = c; isalnum(c = getch()); )
 			*p++ = c;
 		*p = '\0';             /* token = name */
 		ungetch (c);
@@ -119,7 +118,7 @@ int gettoken (void)
 		return tokentype = c;  /* '*' or ')' or '\n' expected */
 }
 
-void token_reset (void)
+void token_reset(void)
 {
 	do {
 		gettoken();
@@ -127,6 +126,8 @@ void token_reset (void)
 }
 
 /* getch.c */
+#ifndef GETCH_C
+#define GETCH_C
 #include <stdio.h>
 
 #define BUFSIZE 100
@@ -144,5 +145,6 @@ void ungetch (int c)
 	if (bp < BUFSIZE)
 		buf[bp++] = c;
 	else
-		printf ("ungetch: buffer full.\n");
+		fprintf(stderr, "ungetch: buffer full.\n");
 }
+#endif
