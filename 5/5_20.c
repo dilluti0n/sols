@@ -92,8 +92,8 @@ int isqualifier(char *token)
 void assign_datatype(char* datatype)
 {
 	datatype[0] = '\0';
-	while (gettok() != EOF && tokentype == NAME
-							&& isqualifier(token) != NOT_Q) {
+	while (gettok() != EOF && tokentype == NAME 
+                           && isqualifier(token) != NOT_Q) {
 		if (datatype[0] == '\0')
 			strcat(datatype, token);
 		else {
@@ -150,10 +150,10 @@ void dirdcl(_Bool mode, char* name)
 				assign_datatype(dtype);
 				buf[0] = '\0';
 				dcl(buf, NONAME_TRUE, name);
-				sprintf(temp, "%s %s %s, ", buf, dtype, name);
+				sprintf(temp, "%s %s %s,", buf, dtype, name);
 				strcat(out, temp);
 			} while (tokentype == ',');
-			strcat(out, "returning");
+			strcat(out, " returning");
 			break;
 		case BRACKETS: /* dirdcl[optional size] */
 			strcat(out, " array");
@@ -182,7 +182,7 @@ int gettoken(void)
 			return tokentype = PARENS;		/* function */
 		} else {
 			ungetch(c);
-			return tokentype = '(';         /* ( dcl ) */
+ 			return tokentype = '(';         /* ( dcl ) */
 		}
 	} else if (c == '[') {
 		for (*p++ = c; (*p++ = getch()) != ']'; )
@@ -260,6 +260,6 @@ void ungetch(int c)
 }
 
 /* 
- * personal takeaway from creating this spaghetti code: 
+ * personal takeaway from creating this spaghetti: 
  * if you want to "use" a function elsewhere, never use a global variable.
  */
