@@ -16,9 +16,6 @@ enum { NAME, PARENS, BRACKETS };
 
 int  gettoken(void);
 
-int  gettok(void);
-void ungettok(int c);
-
 char token[MAXTOKEN];     /* last token string */
 char out[MAXOUT];         /* output string */
 
@@ -30,22 +27,21 @@ main()
 
     for (;;) {
         printf(">> "); /* prompt */
-        if (gettok() == EOF){
+        if (gettoken() == EOF){
             printf("\n");
             break;
         }
         strcpy(out, token); /* variable name */
-        while ((type = gettok()) != '\n')
+        while ((type = gettoken()) != '\n')
             if (type == PARENS || type == BRACKETS) {
+                if (out[0] == '*') { /* pointer to function or array */
+                    sprintf(temp, "(%s)", out);
+                    strcpy(out, temp);
+                }
                 strcat(out, token);
-            } else if (type == '*' && (type = gettok()) != BRACKETS && type != PARENS) {
+            } else if (type == '*') {
                 sprintf(temp, "*%s", out);
                 strcpy(out, temp);
-                ungettok(type);
-            } else if (type == BRACKETS || type == PARENS) {
-                sprintf(temp, "(*%s)", out);
-                strcpy(out, token);
-                ungettok(type);
             } else if (type == NAME) { /* type name */
                 sprintf(temp, "%s %s", token, out);
                 strcpy(out, temp);
@@ -90,42 +86,6 @@ int gettoken(void)
 		return NAME;
 	} else
 		return c;  /* '*' or ')' or '\n' expected */
-}
-
-/* gettok.c */
-int gettok(void);
-void ungettok(int c);
-
-#ifndef BUFSIZE
-#define BUFSIZE 100
-#endif
-
-static int gettok_bp = 0;
-static char gettok_buf[BUFSIZE];
-
-int gettok(void)
-{
-    if (gettok_bp-- > 0)
-        switch (gettok_buf[gettok_bp]) {
-        case PARENS:
-            strcpy(token, "()");
-            return PARENS;
-            break;
-        case BRACKETS:
-            strcpy(token, "[]");
-            return BRACKETS;
-            break;
-        } 
-    else
-        return gettoken();
-}
-
-void ungettok(int c)
-{
-    if (gettok_bp < BUFSIZE)
-        gettok_buf[gettok_bp++] = c;
-    else
-        fprintf(stderr, "ungettok: buffer full.\n");
 }
 
 /* getch.c */
