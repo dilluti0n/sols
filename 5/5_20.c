@@ -12,18 +12,18 @@
 #define MAXTOKEN 100
 
 enum gettok_type {
-    NAME,
-    PARENS,
-    BRACKETS
+	NAME,
+	PARENS,
+	BRACKETS
 };
 enum qualifier_type {
-    NOT_Q,
-    QUAL,
-    TYPE,
+	NOT_Q,
+	QUAL,
+	TYPE,
 };
 enum mode {
-    NONAME_FALSE = 0,
-    NONAME_TRUE = 1
+	NONAME_FALSE = 0,
+	NONAME_TRUE = 1
 };
 
 int isqualifier(char *token);
@@ -39,14 +39,14 @@ void ungettok(int type);
 void token_reset(void);
 
 char* types[] = {
-    "void",
-    "char",
-    "int",
-    "long",
-    "float",
-    "double",
-    "custum_type",
-    NULL
+	"void",
+	"char",
+	"int",
+	"long",
+	"float",
+	"double",
+	"custum_type",
+	NULL
 };
 
 int  tokentype;           /* type of last token */
@@ -60,7 +60,7 @@ main()
 {
 	for (;;) {
 		printf(">> ");   /* prompt */
-        assign_datatype(datatype);
+		assign_datatype(datatype);
 		out[0] = '\0';
 		dcl(out, NONAME_FALSE, name);
 		if (tokentype == '\n') {
@@ -79,29 +79,29 @@ main()
 /* specifiy the qualifier of the delcaror. */
 int isqualifier(char *token)
 {
-    if (!strcmp(token, "const") || !strcmp(token, "static") ||
-        !strcmp(token, "extern"))
-        return QUAL;
-    else for (char** p = types; *p; p++) {
-        if (!strcmp(token, *p))
-            return TYPE;
-    }
-    return NOT_Q;
+	if (!strcmp(token, "const") || !strcmp(token, "static") ||
+		!strcmp(token, "extern"))
+		return QUAL;
+	else for (char** p = types; *p; p++) {
+		if (!strcmp(token, *p))
+			return TYPE;
+	}
+	return NOT_Q;
 }
 
 void assign_datatype(char* datatype)
 {
-    datatype[0] = '\0';
-    while (gettok() != EOF && tokentype == NAME
-                            && isqualifier(token) != NOT_Q) {
-        if (datatype[0] == '\0')
-            strcat(datatype, token);
-        else {
-            strcat(datatype, " ");
-            strcat(datatype, token);
-        }
-    }
-    ungettok(tokentype);
+	datatype[0] = '\0';
+	while (gettok() != EOF && tokentype == NAME
+							&& isqualifier(token) != NOT_Q) {
+		if (datatype[0] == '\0')
+			strcat(datatype, token);
+		else {
+			strcat(datatype, " ");
+			strcat(datatype, token);
+		}
+	}
+	ungettok(tokentype);
 }
 
 /* optional *'s direct-dcl */
@@ -125,7 +125,7 @@ void dirdcl(_Bool mode, char* name)
 		dcl(out, mode, name);
 		if (tokentype != ')')
 			fprintf(stderr,
-                "error: missing closing parenthesis ')' after %s\n", name);
+				"error: missing closing parenthesis ')' after %s\n", name);
 	} else if (tokentype == NAME) { /* name */
 		strcpy(name, token);
 	} else if (mode == NONAME_FALSE) {
@@ -133,34 +133,34 @@ void dirdcl(_Bool mode, char* name)
 		name[0] = '\0';
 		return; /* prevent over-call of gettok() by following sentence. */
 	} else if (tokentype == ')') { /* from dirdcl(args..), prevent over-call when it ends.*/
-        return;
-    }
+		return;
+	}
 	while ((type = gettok()) == PARENS || type == BRACKETS || type == '(')
-        switch (type) {
+		switch (type) {
 		case PARENS: /* dirdcl() */
 			strcat(out, " function returning");
-            break;
-        case '(': /* dirdcl(args..)*/
-            strcat(out, " function with argument");
-            do {
-                char buf[100];
-                char dtype[100];
-                char temp[100];
-                char name[MAXTOKEN];
-                assign_datatype(dtype);
-                buf[0] = '\0';
-		        dcl(buf, NONAME_TRUE, name);
-                sprintf(temp, "%s %s %s, ", buf, dtype, name);
-                strcat(out, temp);
-            } while (tokentype == ',');
-            strcat(out, "returning");
-            break;
+			break;
+		case '(': /* dirdcl(args..)*/
+			strcat(out, " function with argument");
+			do {
+				char buf[100];
+				char dtype[100];
+				char temp[100];
+				char name[MAXTOKEN];
+				assign_datatype(dtype);
+				buf[0] = '\0';
+				dcl(buf, NONAME_TRUE, name);
+				sprintf(temp, "%s %s %s, ", buf, dtype, name);
+				strcat(out, temp);
+			} while (tokentype == ',');
+			strcat(out, "returning");
+			break;
 		case BRACKETS: /* dirdcl[optional size] */
 			strcat(out, " array");
 			strcat(out, token);
 			strcat(out, " of");
-            break;
-        }
+			break;
+		}
 		
 }
 
@@ -197,7 +197,7 @@ int gettoken(void)
 		return tokentype = NAME;
 	} else {
 		return tokentype = c;  /* '*' or ')' or '\n' expected */
-    }
+	}
 }
 
 /* gettok.c */
@@ -211,16 +211,16 @@ static char gp_buf[BUFSIZE];
 /* buffered gettoken() */
 int gettok(void)
 {
-    return (gt_bp > 0)? gp_buf[--gt_bp] : gettoken();
+	return (gt_bp > 0)? gp_buf[--gt_bp] : gettoken();
 }
 
 /* Register type to the gettok() buffer */
 void ungettok(int type)
 {
-    if (gt_bp < BUFSIZE)
-        gp_buf[gt_bp++] = type;
-    else
-        fprintf(stderr, "ungettok: buffer full.\n");
+	if (gt_bp < BUFSIZE)
+		gp_buf[gt_bp++] = type;
+	else
+		fprintf(stderr, "ungettok: buffer full.\n");
 }
 
 /* reset the input and getch() buffer */
