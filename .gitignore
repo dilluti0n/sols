@@ -5,3 +5,4 @@ cc.c
 .DS_Store
 *.exe
 *.dSYM
+.vscode/*
