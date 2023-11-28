@@ -3,70 +3,190 @@
 #include <string.h>
 #include <stdlib.h>
 
-struct tnode {
-	char *word;
-	int count;
-	struct tnode *left;
-	struct tnode *right;
-};
-
 #define MAXWORD 100
 #define MAX_W_BUF 100
 #define MAX_L_BUF 100
+#define DEFAULT_INIT_CHAR 6
+#define NR_OF_TYPES sizeof(data_types) / sizeof(data_types[0])
 
-struct tnode *addtree(struct tnode *, char *);
-void treeprint(struct tnode *);
+struct lower_node {
+	char *word;
+	struct lower_node *left;
+	struct lower_node *right;
+};
+
+struct upper_node {
+	struct lower_node *group_root;
+	struct upper_node *left;
+	struct upper_node *right;
+};
+
+char *data_types[] = {
+    "char",
+    "double",
+    "float",
+    "int",
+    "long",
+    "short",
+    "void",
+}; /* should be ordered lexiographically */
+
+enum state {
+	NOT_VAR = 0,
+	VAR = 1,
+};
+
+int parse_arg_list(int argc, char **argv);
+
+int isdtype(char *word);
+int binsearch(char *, char *[], int);
+
+struct upper_node *var_classify_and_load(char *, struct upper_node *, int);
+struct upper_node *add_upper_tree(struct upper_node*, char*, int);
+struct lower_node *add_lower_tree(struct lower_node *, char *);
+void listprint(struct upper_node *);
+void treeprint(struct lower_node *);
+struct lower_node *talloc(void);
+
 int getword(char *, int);
-
 int get_w(char*, int);
 void ungetw(char*);
-
 int getch(void);
 void ungetch(int c);
 
-struct tnode *talloc(void);
-
 /* word frequency count */
-main()
+int main(int argc, char **argv)
 {
-	struct tnode *root = NULL;
-	char word[MAXWORD], buf[MAXWORD];
+	int init_char = DEFAULT_INIT_CHAR; 
+	/* number of same initial char of vars to group_root */
+
+	struct upper_node *root = NULL;
+	char word[MAXWORD];
+
+	if ((init_char = parse_arg_list(argc, argv)) <= 0) {
+		fprintf(stderr, "err: invalid argument(s).\n");
+		fprintf(stderr, "useage: var_group [positive number]\n");
+		return EXIT_FAILURE;
+	}
 
 	while (get_w(word, MAXWORD) != EOF)
-		if (isalpha(word[0])) {
-			if (get_w(buf, MAXWORD) != '(')
-				root = addtree(root, word);
-			ungetw(buf);
-		}
-	treeprint(root);
+		root = var_classify_and_load(word, root, init_char);
+	listprint(root);
+	return EXIT_SUCCESS;
+}
+
+int parse_arg_list(int argc, char **argv)
+{
+	if (argc == 1)
+		return DEFAULT_INIT_CHAR;
+	if (argc == 2)
+		return atoi(argv[1]);
+	return 0;
+}
+
+int isdtype(char *word)
+{
+	return (binsearch(word, data_types, NR_OF_TYPES) != -1)? 1 : 0;
+}
+
+int binsearch(char *word, char *arr[], int n)
+{
+	int cond;
+	int low, high, mid;
+
+	low = 0;
+	high = n - 1;
+	while (low <= high) {
+		mid = (low + high) / 2;
+		if ((cond = strcmp(word, arr[mid])) < 0)
+			high = mid - 1;
+		else if (cond > 0)
+			low = mid + 1;
+		else
+			return mid;
+	}
+	return -1;
+}
+
+/* load word to tree(root) if it is var */
+struct upper_node *var_classify_and_load(char *word, struct upper_node *root,
+                                                              int init_char)
+{
+	int	state; /* VAR or NOT_VAR (see enum state) */
+	char buf[MAXWORD];
+
+	state = NOT_VAR;
+	while (isdtype(word)) {
+		get_w(word, MAXWORD);
+		state = VAR;
+	}
+	if (!strcmp(word, "struct")) {
+		get_w(word, MAXWORD); /* struct name */
+		get_w(word, MAXWORD); /* var name (or '*') */
+		state = VAR;
+	}
+	while (word[0] == '*' && state == VAR) /* pointer */
+		get_w(word,MAXWORD);
+	if ((isalpha(word[0]) || word[0] == '_')
+			&& get_w(buf, MAXWORD) != '(' && state == VAR) { /* exclude function */
+		ungetw(buf);
+		return add_upper_tree(root, word, init_char);
+	}
+	return root;
+}
+
+struct upper_node *add_upper_tree(struct upper_node *p, char *w, int init_char)
+{
+	int cond;
+
+	if (p == NULL) { /* root */
+		p = (struct upper_node *) malloc(sizeof(struct upper_node));
+		p->group_root = add_lower_tree(p->group_root, w);
+		p->left = p->right = NULL;
+	} else if ((cond = strncmp(p->group_root->word, w, init_char)) == 0) {
+		p->group_root = add_lower_tree(p->group_root, w);
+	} else if (cond > 0) {
+		p->left = add_upper_tree(p->left, w, init_char);
+	} else {
+		p->right = add_upper_tree(p->right, w, init_char);
+	}
+	return p;
 }
 
 /* add a node with w, at or below p */
-struct tnode *addtree(struct tnode *p, char *w)
+struct lower_node *add_lower_tree(struct lower_node *p, char *w)
 {
 	int cond;
 
 	if (p == NULL) { /* at p (new word) */
 		p = talloc();
 		p->word = strdup(w);
-		p->count = 1;
 		p->left = p->right = NULL;
-	} else if ((cond = strcmp(w, p->word)) == 0) {
-		p->count++; /* repeated word */
-	} else if (cond < 0) { /* less than into left subtree */
-		p->left = addtree(p->left, w);
-	} else { /* greater than into left subtree */
-		p->right = addtree(p->right, w);
+	} else if ((cond = strcmp(w, p->word)) < 0) { /* less than into left subtree */
+		p->left = add_lower_tree(p->left, w);
+	} else if (cond > 0) { /* greater than into left subtree */
+		p->right = add_lower_tree(p->right, w);
 	}
 	return p;
 }
 
+void listprint(struct upper_node *p)
+{
+	if (p != NULL)
+	{
+		listprint(p->left);
+		treeprint(p->group_root);
+		putchar('\n');
+		listprint(p->right);
+	}
+}
+
 /* in-order print of tree p */
-void treeprint(struct tnode *p)
+void treeprint(struct lower_node *p)
 {
 	if (p != NULL) {
 		treeprint(p->left);
-		printf("%4d %s\n", p->count, p->word);
+		printf("%s\n", p->word);
 		treeprint(p->right);
 	}
 }
@@ -151,10 +271,10 @@ void ungetw(char *word)
 		fprintf(stderr, "ungetw: buffer full\n");
 }
 
-/* make a tnode */
-struct tnode *talloc(void)
+/* make a lower_node */
+struct lower_node *talloc(void)
 {
-	return (struct tnode *) malloc(sizeof(struct tnode));
+	return (struct lower_node *) malloc(sizeof(struct lower_node));
 }
 
 static char buf[MAX_L_BUF];
