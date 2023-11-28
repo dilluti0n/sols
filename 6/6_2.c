@@ -51,8 +51,8 @@ int binsearch(char *, char *[], int);
 struct upper_node *var_classify_and_load(char *, struct upper_node *, int);
 struct upper_node *add_upper_tree(struct upper_node*, char*, int);
 struct lower_node *add_lower_tree(struct lower_node *, char *);
-void listprint(struct upper_node *);
-void treeprint(struct lower_node *);
+void print_upper_tree(struct upper_node *);
+void print_lower_tree(struct lower_node *);
 struct lower_node *talloc(void);
 
 int getword(char *, int);
@@ -78,7 +78,7 @@ int main(int argc, char **argv)
 
 	while (get_w(word, MAXWORD) != EOF)
 		root = var_classify_and_load(word, root, init_char);
-	listprint(root);
+	print_upper_tree(root);
 	return EXIT_SUCCESS;
 }
 
@@ -177,24 +177,24 @@ struct lower_node *add_lower_tree(struct lower_node *p, char *w)
 	return p;
 }
 
-void listprint(struct upper_node *p)
+void print_upper_tree(struct upper_node *p)
 {
 	if (p != NULL)
 	{
-		listprint(p->left);
-		treeprint(p->group_root);
+		print_upper_tree(p->left);
+		print_lower_tree(p->group_root);
 		putchar('\n');
-		listprint(p->right);
+		print_upper_tree(p->right);
 	}
 }
 
 /* in-order print of tree p */
-void treeprint(struct lower_node *p)
+void print_lower_tree(struct lower_node *p)
 {
 	if (p != NULL) {
-		treeprint(p->left);
+		print_lower_tree(p->left);
 		printf("%s\n", p->word);
-		treeprint(p->right);
+		print_lower_tree(p->right);
 	}
 }
 
