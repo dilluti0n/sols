@@ -18,8 +18,7 @@ struct lnode {
 };
 
 struct tnode {
-	int count;
-	char *word;
+	struct lnode *list_node;
 	struct tnode *left;
 	struct tnode *right;
 };
@@ -58,9 +57,8 @@ struct tnode *sort_by_count(struct tnode *p, struct lnode *node)
 {
 	if (p == NULL) {
 		p = (struct tnode *) malloc(sizeof (struct tnode));
-		p->word = node->word;
-		p->count = node->count;
-	} else if (node->count <= p->count) {
+		p->list_node = node;
+	} else if (node->count <= p->list_node->count) {
 		p->left = sort_by_count(p->left, node);
 	} else {
 		p->right = sort_by_count(p->right, node);
@@ -87,7 +85,7 @@ void treeprint(struct tnode *p)
 {
 	if (p != NULL) {
 		treeprint(p->right);
-		printf("%d %s\n", p->count, p->word);
+		printf("%d %s\n", p->list_node->count, p->list_node->word);
 		treeprint(p->left);
 	}
 }
