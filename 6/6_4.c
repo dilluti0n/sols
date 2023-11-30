@@ -25,7 +25,7 @@ struct tnode {
 
 struct tnode *sort_by_count(struct tnode *, struct lnode *);
 struct lnode *addlist(struct lnode *, char *);
-void treeprint(struct tnode *);
+void tree_print_and_free(struct tnode *);
 
 int getword(char *word, int lim);
 
@@ -49,7 +49,7 @@ main()
 		}
 		node = node->next;
 	}
-	treeprint(root);
+	tree_print_and_free(root);
 	exit(EXIT_SUCCESS);
 }
 
@@ -81,12 +81,15 @@ struct lnode *addlist(struct lnode *p, char *w)
 	return p;
 }
 
-void treeprint(struct tnode *p)
+void tree_print_and_free(struct tnode *p)
 {
 	if (p != NULL) {
-		treeprint(p->right);
+		tree_print_and_free(p->right);
 		printf("%d %s\n", p->list_node->count, p->list_node->word);
-		treeprint(p->left);
+		free(p->list_node->word);
+		free(p->list_node);
+		tree_print_and_free(p->left);
+		free(p);
 	}
 }
 
