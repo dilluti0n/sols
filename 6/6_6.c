@@ -169,7 +169,7 @@ void print_list(struct nlist *p)
 
 int get_words_for_define_macro(char *name, char *defn, int lim)
 {
-	int c, i;
+	int c;
 	char *w;
 
 	w = name; /* get name */
@@ -177,7 +177,7 @@ int get_words_for_define_macro(char *name, char *defn, int lim)
 		;
 	if (c != EOF)
 		*w++ = c;
-	for (; w - name < lim; i++, w++)
+	for (; w - name < lim; w++)
 		if (isspace(*w = c = getch())) {
 			ungetch(c);
 			break;
