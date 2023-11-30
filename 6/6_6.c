@@ -1,6 +1,7 @@
 /*
- * Ex 6-5. Write a function undef that remove a name and definition
- * from the table maintained by lookup and install.
+ * Ex 6-6. Implement a simple version of the #define processor (i.e., no
+ * arguments) suitable for use with C programs, based on the routines of
+ * this section. You may also find getch and ungetch helpful.
  */
 #include <stdio.h>
 #include <string.h>
