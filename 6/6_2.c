@@ -44,11 +44,11 @@ enum state {
 };
 
 int parse_arg_list(int argc, char **argv);
+struct upper_node *var_classify_and_load(char *, struct upper_node *, int);
 
 int isdtype(char *word);
 int binsearch(char *, char *[], int);
 
-struct upper_node *var_classify_and_load(char *, struct upper_node *, int);
 struct upper_node *add_upper_tree(struct upper_node*, char*, int);
 struct lower_node *add_lower_tree(struct lower_node *, char *);
 void print_upper_tree(struct upper_node *);
@@ -91,30 +91,6 @@ int parse_arg_list(int argc, char **argv)
 	return 0;
 }
 
-int isdtype(char *word)
-{
-	return (binsearch(word, data_types, NR_OF_TYPES) != -1)? 1 : 0;
-}
-
-int binsearch(char *word, char *arr[], int n)
-{
-	int cond;
-	int low, high, mid;
-
-	low = 0;
-	high = n - 1;
-	while (low <= high) {
-		mid = (low + high) / 2;
-		if ((cond = strcmp(word, arr[mid])) < 0)
-			high = mid - 1;
-		else if (cond > 0)
-			low = mid + 1;
-		else
-			return mid;
-	}
-	return -1;
-}
-
 /* load word to tree(root) if it is var */
 struct upper_node *var_classify_and_load(char *word, struct upper_node *root,
                                                               int init_char)
@@ -140,6 +116,30 @@ struct upper_node *var_classify_and_load(char *word, struct upper_node *root,
 		return add_upper_tree(root, word, init_char);
 	}
 	return root;
+}
+
+int isdtype(char *word)
+{
+	return (binsearch(word, data_types, NR_OF_TYPES) != -1)? 1 : 0;
+}
+
+int binsearch(char *word, char *arr[], int n)
+{
+	int cond;
+	int low, high, mid;
+
+	low = 0;
+	high = n - 1;
+	while (low <= high) {
+		mid = (low + high) / 2;
+		if ((cond = strcmp(word, arr[mid])) < 0)
+			high = mid - 1;
+		else if (cond > 0)
+			low = mid + 1;
+		else
+			return mid;
+	}
+	return -1;
 }
 
 struct upper_node *add_upper_tree(struct upper_node *p, char *w, int init_char)
