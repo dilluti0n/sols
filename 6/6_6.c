@@ -45,17 +45,18 @@ main()
 	int c;
 
 	while ((c = getword(syntax, MAXWORD)) != EOF)
-		if (c == '#' && preprocess(syntax, MAXWORD) < 0)
+		if (c == '#' && preprocess() < 0)
 			return EXIT_FAILURE;
 	print_table();
 	return EXIT_SUCCESS;
 }
 
 /* preprocessing unit */
-int preprocess(char *syntax, int lim)
+int preprocess(void)
 {
 	int err = 0;
-
+	char syntax[MAXWORD];
+	
 	getword(syntax, MAXWORD);
 	switch (syn_switcher_for_preprocess(syntax)) {
 	case DEFINE:
@@ -83,7 +84,7 @@ int load_define_macro(void)
 	int err;
 
 	err = get_words_for_define_macro(name, defn, MAXWORD);
-	if (install(name, defn) == NULL)
+	if (err >= 0 && install(name, defn) == NULL)
 		err = -1;
 	return err;
 }
