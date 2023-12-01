@@ -24,7 +24,7 @@ enum syntax {
 
 static struct nlist *hashtab[HASHSIZE]; /* pointer table */
 
-int preprocess(char *syntax, int lim);
+int preprocess();
 enum syntax syn_switcher_for_preprocess(char *syntax);
 int load_define_macro(void);
 int get_words_for_define_macro(char *name, char *defn, int lim);
