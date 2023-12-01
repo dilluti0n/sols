@@ -1,6 +1,7 @@
 /*
- * Ex 6-5. Write a function undef that remove a name and definition
- * from the table maintained by lookup and install.
+ * Ex 6-6. Implement a simple version of the #define processor (i.e., no
+ * arguments) suitable for use with C programs, based on the routines of
+ * this section. You may also find getch and ungetch helpful.
  */
 #include <stdio.h>
 #include <string.h>
@@ -168,7 +169,7 @@ void print_list(struct nlist *p)
 
 int get_words_for_define_macro(char *name, char *defn, int lim)
 {
-	int c, i;
+	int c;
 	char *w;
 
 	w = name; /* get name */
@@ -176,7 +177,7 @@ int get_words_for_define_macro(char *name, char *defn, int lim)
 		;
 	if (c != EOF)
 		*w++ = c;
-	for (; w - name < lim; i++, w++)
+	for (; w - name < lim; w++)
 		if (isspace(*w = c = getch())) {
 			ungetch(c);
 			break;
