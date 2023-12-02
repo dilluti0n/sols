@@ -26,7 +26,7 @@ enum syntax {
 static struct nlist *hashtab[HASHSIZE]; /* pointer table */
 
 int preprocess();
-enum syntax syn_switcher_for_preprocess(char *syntax);
+enum syntax switch_syn_for_preprocess(char *syntax);
 int load_define_macro(int lim);
 int load_undef_macro(int lim);
 int get_words_for_define_macro(char *name, char *defn, int lim);
@@ -61,7 +61,7 @@ int preprocess(void)
 	char syntax[MAXWORD];
 	
 	getword(syntax, MAXWORD);
-	switch (syn_switcher_for_preprocess(syntax)) {
+	switch (switch_syn_for_preprocess(syntax)) {
 	case DEFINE:
 		err = load_define_macro(MAXWORD);
 		break;
@@ -76,7 +76,7 @@ int preprocess(void)
 }
 
 /* syantax switcher for preprocess */
-enum syntax syn_switcher_for_preprocess(char *syntax)
+enum syntax switch_syn_for_preprocess(char *syntax)
 {
 	if (!strcmp(syntax, "define"))
 		return DEFINE;
