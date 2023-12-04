@@ -19,15 +19,18 @@ struct nlist {
 
 enum syntax {
 	DEFINE = 500,
+	UNDEF,
 	UNKNOWN,	
 }; /* preprocessor syntax */
 
 static struct nlist *hashtab[HASHSIZE]; /* pointer table */
 
 int preprocess();
-enum syntax syn_switcher_for_preprocess(char *syntax);
-int load_define_macro(void);
+enum syntax switch_syn_for_preprocess(char *syntax);
+int load_define_macro(int lim);
+int load_undef_macro(int lim);
 int get_words_for_define_macro(char *name, char *defn, int lim);
+int get_words_for_undef_macro(char *name, int lim);
 struct nlist *install(char *name, char *defn);
 struct nlist *lookup(char *s);
 unsigned hash(char *s);
@@ -58,9 +61,12 @@ int preprocess(void)
 	char syntax[MAXWORD];
 	
 	getword(syntax, MAXWORD);
-	switch (syn_switcher_for_preprocess(syntax)) {
+	switch (switch_syn_for_preprocess(syntax)) {
 	case DEFINE:
-		err = load_define_macro();
+		err = load_define_macro(MAXWORD);
+		break;
+	case UNDEF:
+		err = load_undef_macro(MAXWORD);
 		break;
 	case UNKNOWN:
 		fprintf(stderr, "%s: unknown prefix \"%s\".\n",__func__, syntax);
@@ -70,22 +76,35 @@ int preprocess(void)
 }
 
 /* syantax switcher for preprocess */
-enum syntax syn_switcher_for_preprocess(char *syntax)
+enum syntax switch_syn_for_preprocess(char *syntax)
 {
 	if (!strcmp(syntax, "define"))
 		return DEFINE;
+	if (!strcmp(syntax, "undef"))
+		return UNDEF;
 	return UNKNOWN;
 } /* use binary search instead of this when list of syntax is large */
 
 /* get define macro (name, defn) from input stream and load to hashed list */
-int load_define_macro(void)
+int load_define_macro(int lim)
 {
-	char name[MAXWORD], defn[MAXWORD];
+	char name[lim], defn[lim];
 	int err;
 
-	err = get_words_for_define_macro(name, defn, MAXWORD);
+	err = get_words_for_define_macro(name, defn, lim);
 	if (err >= 0 && install(name, defn) == NULL)
 		err = -1;
+	return err;
+}
+
+int load_undef_macro(int lim)
+{
+	int err;
+	char name[lim];
+
+	err = get_words_for_undef_macro(name, lim);
+	if (err >= 0 && (err = undef(name)) < 0)
+		return err;
 	return err;
 }
 
@@ -141,6 +160,7 @@ int undef(char *s)
 			free(node);
 			return 0;
 		}
+	fprintf(stderr, "%s: no name %s in hash table\n", __func__, s);
 	return -1;
 }
 
@@ -191,6 +211,10 @@ int get_words_for_define_macro(char *name, char *defn, int lim)
 	w = defn; /* get defn */
 	while (isblank(c = getch()))
 		;
+	if (c == '\n') {
+		*w = '\0';
+		return 0;
+	}
 	if (c != EOF)
 		*w++ = c;
 	for (; w - defn < lim; w++)
@@ -203,6 +227,35 @@ int get_words_for_define_macro(char *name, char *defn, int lim)
 		return -1;
 	}
 	*w = '\0'; /* defn */
+	return 0;
+}
+
+int get_words_for_undef_macro(char *name, int lim)
+{
+	char c;
+	char *w;
+
+	w = name; /* get name */
+	while (isspace(c = getch()))
+		;
+	if (c != EOF)
+		*w++ = c;
+	for (; w - name < lim; w++)
+		if (isspace(*w = c = getch())) {
+			ungetch(c);
+			break;
+		}
+	*w = '\0';
+	if (w - name >= lim) {
+		fprintf(stderr, "%s: too long macro name\n", __func__);
+		return -1;
+	}
+	while (isblank(c = getch()))
+		;
+	if (c != '\n') {
+		fprintf(stderr, "%s: Syntaxerr for name %s\n", __func__, name);
+		return -1;
+	}
 	return 0;
 }
 
