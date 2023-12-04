@@ -23,5 +23,7 @@ main()
 			cnt = 0;
 		}
 	}
+	printf("[%2x]", c); /* EOF */
 	putchar('\n');
+	return 0;
 }
