@@ -24,6 +24,15 @@ main()
 		}
 	}
 	printf("[%2x]", c); /* EOF */
+	/*
+	 * Since char variables have 1 byte of storage, it can be considered
+	 * that printing EOF with %x in printf should print "ff", but it ac-
+	 * tually prints "ffffffff". This is because when a char value is p-
+	 * assed to a function like printf, it undergoes integer promotion. 
+	 * Integer promotion typically converts a char to an int, and if char
+	 * is signed and its value is negative, this promotion involves sign 
+	 * extension to maintain the same numerical value.
+	 */
 	putchar('\n');
 	return 0;
 }
