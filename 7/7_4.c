@@ -149,7 +149,7 @@ double input_double(FILE *file)
 		if (c == '.')
 			cnt++;
 	}
-	if (c == '.')
+	if (c == '.' && cnt >= 2)
 		ungetch(c); /* 
 		             * If a second '.' is entered, it should be 
 		             * treated as the next input.
