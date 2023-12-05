@@ -149,6 +149,11 @@ double input_double(FILE *file)
 		if (c == '.')
 			cnt++;
 	}
+	if (c == '.')
+		ungetch(c); /* 
+		             * If a second '.' is entered, it should be 
+					 * treated as the next input.
+					 * */
 	*p = '\0';
 	ungetc(c, file);
 	return atof(out);
