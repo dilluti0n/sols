@@ -49,7 +49,8 @@ void minscanf(char *fmt, ...)
 	for (p = fmt; *p; p++) {
 		if (isspace(*p)) {
 			skip_space(stdin);
-			continue;
+			while(isspace(*++p))
+				;
 		}
 		if (*p != '%') {
 			if (*p == getc(stdin))
