@@ -10,9 +10,9 @@
 
 enum mod {
 	ERR = -1,
-	LOWER = 0,
+	NO_ARGV = 0,
 	UPPER,
-	NO_ARGV,
+	LOWER,
 };
 
 enum mod parse_argv_list(int argc, char *argv[]);
@@ -53,8 +53,9 @@ enum mod parse_argv_list(int argc, char *argv[])
 		return LOWER;
 	if (!strcmp(argv[1], "toupper"))
 		return UPPER;
-	fprintf(stderr, "%s: invalid character.\n", __func__);
+	fprintf(stderr, "%s: invalid argv \"%s\".\n", __func__, argv[1]);
 err:
-	fprintf(stderr, "Useage: convert tolower or convert toupper\n");
+	printf("Useage: convert tolower (convert upper letter to lower one.)\n");
+	printf("                toupper (convert lower letter to upper one.)\n");
 	return ERR;
 }
